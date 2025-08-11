@@ -25,7 +25,8 @@
   <p id="status"></p>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyx55zpMvBxh63e-URwlraOKrX7KTcJxEeH2lPu7B1vitdbMyhmKjzkH6qbk2RWXQKR/exec";
+    // Replace with your deployed Web App URL
+    const SCRIPT_URL = "YOUR_WEB_APP_URL_HERE";
 
     function blockDate() {
       const name = document.getElementById("userName").value.trim();
@@ -38,17 +39,13 @@
 
       fetch(SCRIPT_URL, {
         method: "POST",
-        mode: "cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name, date: date })
+        body: JSON.stringify({ name, date })
       })
       .then(res => res.json())
       .then(data => {
-        if (data.status === "success") {
-          document.getElementById("status").textContent = `Date ${date} blocked for ${name} successfully!`;
-        } else {
-          document.getElementById("status").textContent = "Error: " + data.message;
-        }
+        document.getElementById("status").textContent = 
+          data.status === "success" ? `Date ${date} blocked for ${name}!` : "Error: " + data.message;
       })
       .catch(err => {
         document.getElementById("status").textContent = "Fetch error: " + err;
