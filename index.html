@@ -17,7 +17,7 @@
 <body>
 
   <h1>Upload Image to Google Sheet</h1>
-  <form id="uploadForm">
+  <form id="uploadForm" method="post" enctype="multipart/form-data">
     <label for="name">Name:</label>
     <input type="text" id="name" name="name" required>
     
@@ -36,8 +36,9 @@
       const statusDiv = document.getElementById('status');
       statusDiv.textContent = 'Uploading...';
 
-      const name = document.getElementById('name').value;
-      const file = document.getElementById('imageFile').files[0];
+      const form = e.target;
+      const file = form.imageFile.files[0];
+      const name = form.name.value;
 
       if (!name || !file) {
         statusDiv.textContent = '❌ Please provide a name and an image.';
@@ -48,19 +49,17 @@
       reader.onload = function(event) {
         const base64Data = event.target.result.split(',')[1];
         
-        // --- REPLACE THIS WITH YOUR DEPLOYED APPS SCRIPT URL ---
+        // --- YOUR APPS SCRIPT WEB APP URL HERE ---
         const API_URL = 'https://script.google.com/macros/s/AKfycbwwH-iC3DKugjuRKDD-wJlh1KQclzNB6hS9zoFZIcbLUl05aoqDxXKVl6AgG32RPNBw/exec';
+        
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('image', base64Data);
+        formData.append('mimeType', file.type);
 
         fetch(API_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            name: name,
-            image: base64Data,
-            mimeType: file.type
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: formData
         })
         .then(response => {
           if (!response.ok) {
@@ -71,7 +70,7 @@
         .then(data => {
           if (data.status === 'success') {
             statusDiv.textContent = '✅ ' + data.message;
-            document.getElementById('uploadForm').reset();
+            form.reset();
           } else {
             statusDiv.textContent = '❌ ' + data.message;
           }
