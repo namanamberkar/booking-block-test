@@ -1,56 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Booking Block Test</title>
+  <title>Upload Image to Google Sheet</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    label { display: block; margin-top: 10px; }
-    input, button { padding: 8px; font-size: 16px; margin-top: 5px; }
-    button { cursor: pointer; }
-    #status { margin-top: 15px; font-weight: bold; }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; }
+    form { max-width: 400px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+    label, input, button { display: block; margin-top: 10px; }
+    input[type="text"] { width: 100%; padding: 8px; box-sizing: border-box; }
+    input[type="file"] { margin-bottom: 20px; }
+    button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; cursor: pointer; width: 100%; }
+    button:hover { background-color: #45a049; }
+    #status { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h2>Block a Date</h2>
 
-  <label for="userName">User Name</label>
-  <input type="text" id="userName" placeholder="Enter your name">
-
-  <label for="blockDate">Date</label>
-  <input type="date" id="blockDate">
-
-  <button onclick="blockDate()">Block Date</button>
-
-  <p id="status"></p>
+  <h1>Upload Image to Google Sheet</h1>
+  <form id="uploadForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+    
+    <label for="imageFile">Select Image:</label>
+    <input type="file" id="imageFile" name="imageFile" accept="image/*" required>
+    
+    <button type="submit">Submit</button>
+  </form>
+  
+  <div id="status"></div>
 
   <script>
-    // Replace with your deployed Web App URL
-    const SCRIPT_URL = "YOUR_WEB_APP_URL_HERE";
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = 'Uploading...';
 
-    function blockDate() {
-      const name = document.getElementById("userName").value.trim();
-      const date = document.getElementById("blockDate").value;
+      const name = document.getElementById('name').value;
+      const file = document.getElementById('imageFile').files[0];
 
-      if (!name || !date) {
-        document.getElementById("status").textContent = "Please enter both name and date.";
+      if (!name || !file) {
+        statusDiv.textContent = '❌ Please provide a name and an image.';
         return;
       }
+      
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const base64Data = event.target.result.split(',')[1];
+        
+        // --- REPLACE THIS WITH YOUR DEPLOYED APPS SCRIPT URL ---
+        const API_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, date })
-      })
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("status").textContent = 
-          data.status === "success" ? `Date ${date} blocked for ${name}!` : "Error: " + data.message;
-      })
-      .catch(err => {
-        document.getElementById("status").textContent = "Fetch error: " + err;
-      });
-    }
+        fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            name: name,
+            image: base64Data,
+            mimeType: file.type
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === 'success') {
+            statusDiv.textContent = '✅ ' + data.message;
+            document.getElementById('uploadForm').reset();
+          } else {
+            statusDiv.textContent = '❌ ' + data.message;
+          }
+        })
+        .catch(error => {
+          statusDiv.textContent = '❌ An error occurred: ' + error.message;
+        });
+      };
+      reader.readAsDataURL(file);
+    });
   </script>
 </body>
 </html>
