@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Booking Block Test</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    label { display: block; margin-top: 10px; }
+    input, button { padding: 8px; font-size: 16px; margin-top: 5px; }
+    button { cursor: pointer; }
+    #status { margin-top: 15px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>Block a Date</h2>
+
+  <label for="userName">User Name</label>
+  <input type="text" id="userName" placeholder="Enter your name">
+
+  <label for="blockDate">Date</label>
+  <input type="date" id="blockDate">
+
+  <button onclick="blockDate()">Block Date</button>
+
+  <p id="status"></p>
+
+  <script>
+    const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL"; // replace with your deployed URL
+
+    function blockDate() {
+      const name = document.getElementById("userName").value.trim();
+      const date = document.getElementById("blockDate").value;
+
+      if (!name || !date) {
+        document.getElementById("status").textContent = "Please enter both name and date.";
+        return;
+      }
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name, date: date })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          document.getElementById("status").textContent = `Date ${date} blocked for ${name} successfully!`;
+        } else {
+          document.getElementById("status").textContent = "Error: " + data.message;
+        }
+      })
+      .catch(err => {
+        document.getElementById("status").textContent = "Fetch error: " + err;
+      });
+    }
+  </script>
+</body>
+</html>
